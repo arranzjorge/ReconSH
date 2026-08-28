@@ -36,12 +36,12 @@ RUN nuclei -update-templates -silent || true
 
 WORKDIR /app
 
-COPY recon-chain.sh /app/recon-chain.sh
-RUN chmod +x /app/recon-chain.sh
+COPY recon-chain.sh /app/ReconSH_v1.sh
+RUN chmod +x /app/ReconSH_v1.sh
 
 # Los resultados se escriben aquí; monta un volumen sobre esta ruta
 RUN mkdir -p /app/results
 VOLUME ["/app/results"]
 
-ENTRYPOINT ["/app/recon-chain.sh"]
+ENTRYPOINT ["/app/ReconSH_v1.sh"]
 CMD ["-h"]
