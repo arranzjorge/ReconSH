@@ -6,7 +6,7 @@ FROM golang:1.22-bookworm AS builder
 ENV GOPATH=/go
 ENV PATH=$GOPATH/bin:$PATH
 
-RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest && \
+RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@v2.15.0 && \
     go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
     go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
