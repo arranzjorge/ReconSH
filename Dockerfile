@@ -1,12 +1,12 @@
 # ---------------------------------------------------------------------------
 # Etapa 1: compilar las herramientas de ProjectDiscovery con Go
 # ---------------------------------------------------------------------------
-FROM golang:1.22-bookworm AS builder
+FROM golang:1.25-bookworm AS builder
 
 ENV GOPATH=/go
 ENV PATH=$GOPATH/bin:$PATH
 
-RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@v2.15.0 && \
+RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest && \
     go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
     go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
