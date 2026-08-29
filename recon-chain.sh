@@ -173,16 +173,31 @@ run_nmap() {
     local port_flag="--top-ports 1000"
     [[ "$NMAP_PORTS" != "top-1000" ]] && port_flag="-p $NMAP_PORTS"
 
+    local max_parallel=10
+    local nmap_pids=()
+
     while read -r host; do
         [[ -z "$host" ]] && continue
         local safe_name
         safe_name=$(echo "$host" | tr -c 'a-zA-Z0-9.-' '_')
         nmap -sV -T4 $port_flag -oN "$NMAP_DIR/${safe_name}.txt" "$host" &>>"$LOG_FILE" &
+        nmap_pids+=("$!")
 
-        # Limita ejecuciones paralelas para no saturar
-        while [[ $(jobs -r | wc -l) -ge 10 ]]; do wait -n; done
+        # Limita ejecuciones paralelas: espera al escaneo más antiguo antes de
+        # lanzar más, en vez de "wait"/"wait -n" a secas (ver nota abajo).
+        if [[ ${#nmap_pids[@]} -ge $max_parallel ]]; then
+            wait "${nmap_pids[0]}" 2>/dev/null
+            nmap_pids=("${nmap_pids[@]:1}")
+        fi
     done < "$hosts_file"
-    wait
+
+    # IMPORTANTE: se espera a cada PID de nmap de forma explícita. Un "wait" a
+    # secas aquí esperaría también al proceso "tee" creado por el
+    # "exec > >(tee -a "$LOG_FILE")" del principio del script -- y como ese
+    # "tee" nunca recibe EOF, el script se quedaría colgado para siempre.
+    for pid in "${nmap_pids[@]}"; do
+        wait "$pid" 2>/dev/null
+    done
 
     log_ok "Escaneo nmap completado. Resultados en $NMAP_DIR/"
 }
@@ -218,10 +233,10 @@ generate_report() {
     log_info "Generando informe final..."
 
     local subs_count live_count nmap_count nuclei_count
-    subs_count=$(wc -l < "$SUBS_FILE" 2>/dev/null || echo 0)
-    live_count=$(wc -l < "$LIVE_FILE" 2>/dev/null || echo 0)
+    subs_count=$([[ -f "$SUBS_FILE" ]] && wc -l < "$SUBS_FILE" || echo 0)
+    live_count=$([[ -f "$LIVE_FILE" ]] && wc -l < "$LIVE_FILE" || echo 0)
     nmap_count=$(find "$NMAP_DIR" -type f -name '*.txt' 2>/dev/null | wc -l)
-    nuclei_count=$(wc -l < "$NUCLEI_FILE" 2>/dev/null || echo 0)
+    nuclei_count=$([[ -f "$NUCLEI_FILE" ]] && wc -l < "$NUCLEI_FILE" || echo 0)
 
     {
         echo "# Informe de reconocimiento - $DOMAIN"
