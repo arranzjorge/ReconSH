@@ -5,6 +5,12 @@ FROM golang:1.25-bookworm AS builder
 
 ENV GOPATH=/go
 ENV PATH=$GOPATH/bin:$PATH
+# Permite que Go descargue automáticamente una toolchain más reciente si el
+# módulo que se instala la requiere (p. ej. subfinder pidiendo go >= 1.26
+# cuando la imagen base solo trae 1.25). Sin esto, hay que estar
+# actualizando la versión de la imagen base cada vez que ProjectDiscovery
+# saca un release que sube el mínimo de Go exigido.
+ENV GOTOOLCHAIN=auto
 
 RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest && \
     go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
