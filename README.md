@@ -60,7 +60,7 @@ chmod +x recon-chain.sh
 ## 🖥️ Uso
 
 ```bash
-./ReconSH_v1.sh -d ejemplo.com
+./recon-chain.sh -d ejemplo.com
 ```
 
 ### Opciones
